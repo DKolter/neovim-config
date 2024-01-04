@@ -1,0 +1,190 @@
+-- Lsp attach handler
+vim.api.nvim_create_autocmd("LspAttach", {
+    desc = "LSP actions",
+    callback = function()
+        local bufmap = function(mode, lhs, rhs)
+            local opts = { buffer = true }
+            vim.keymap.set(mode, lhs, rhs, opts)
+        end
+
+        bufmap("n", "<leader>k", "<cmd>lua vim.lsp.buf.hover()<cr>")
+        bufmap("n", "gd", "<cmd>lua vim.lsp.buf.definition()<cr>")
+        bufmap("n", "gD", "<cmd>lua vim.lsp.buf.declaration()<cr>")
+        bufmap("n", "gi", "<cmd>lua vim.lsp.buf.implementation()<cr>")
+        bufmap("n", "gt", "<cmd>lua vim.lsp.buf.type_definition()<cr>")
+        bufmap("n", "gr", "<cmd>lua vim.lsp.buf.references()<cr>")
+        bufmap("n", "gs", "<cmd>lua vim.lsp.buf.signature_help()<cr>")
+        bufmap("n", "<leader>lr", "<cmd>lua vim.lsp.buf.rename()<cr>")
+        bufmap("n", "<leader>lf", "<cmd>lua vim.lsp.buf.format({async = true})<cr>")
+        bufmap("n", "<leader>la", "<cmd>lua vim.lsp.buf.code_action()<cr>")
+        bufmap("n", "<leader>le", "<cmd>lua vim.diagnostic.open_float()<cr>")
+    end
+})
+
+-- Diagnostics setup
+local sign = function(opts)
+    vim.fn.sign_define(opts.name, {
+        texthl = opts.name,
+        text = opts.text,
+        numhl = ""
+    })
+end
+
+sign({ name = "DiagnosticSignError", text = "✘" })
+sign({ name = "DiagnosticSignWarn", text = "▲" })
+sign({ name = "DiagnosticSignHint", text = "⚑" })
+sign({ name = "DiagnosticSignInfo", text = "" })
+
+vim.diagnostic.config({
+    virtual_text = false,
+    severity_sort = true,
+    float = {
+        border = "rounded",
+        source = "always",
+    },
+})
+
+vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(
+    vim.lsp.handlers.hover,
+    { border = "rounded" }
+)
+
+vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(
+    vim.lsp.handlers.signature_help,
+    { border = "rounded" }
+)
+
+-- Mason setup
+require("mason").setup()
+require("mason-lspconfig").setup({
+    ensure_installed = {
+        "lua_ls",
+        "rust_analyzer",
+        "pyright",
+        "clangd",
+        "cssls",
+        "html",
+        "jsonls",
+        "tsserver",
+    }
+})
+
+-- Treesitter setup
+require("nvim-treesitter.configs").setup({
+    ensure_installed = {
+        "c",
+        "cpp",
+        "lua",
+        "rust",
+        "python",
+        "html",
+        "javascript",
+        "css",
+        "csv",
+        "json",
+        "toml",
+        "xml",
+    }
+})
+
+-- Configure the lsps
+local lspconfig = require("lspconfig")
+local lsp_capabilities = require("cmp_nvim_lsp").default_capabilities()
+lspconfig.lua_ls.setup({ capabilities = lsp_capabilities })
+lspconfig.rust_analyzer.setup({ capabilities = lsp_capabilities })
+lspconfig.pyright.setup({ capabilities = lsp_capabilities })
+lspconfig.clangd.setup({ capabilities = lsp_capabilities })
+lspconfig.cssls.setup({ capabilities = lsp_capabilities })
+lspconfig.html.setup({ capabilities = lsp_capabilities })
+lspconfig.jsonls.setup({ capabilities = lsp_capabilities })
+lspconfig.tsserver.setup({ capabilities = lsp_capabilities })
+
+-- Configure auto completion
+local cmp = require("cmp")
+local luasnip = require("luasnip")
+
+local select_opts = {
+    behavior = cmp.SelectBehavior.Select
+}
+
+cmp.setup({
+    snippet = {
+        expand = function(args)
+            luasnip.lsp_expand(args.body)
+        end
+    },
+    sources = {
+        { name = "path" },
+        { name = "crates" },
+        { name = "nvim_lsp", keyword_length = 1 },
+        { name = "buffer",   keyword_length = 3 },
+        { name = "luasnip",  keyword_length = 2 },
+    },
+    window = {
+        documentation = cmp.config.window.bordered()
+    },
+    formatting = {
+        fields = { "menu", "abbr", "kind" },
+        format = function(entry, item)
+            local menu_icon = {
+                nvim_lsp = "λ",
+                luasnip = "⋗",
+                buffer = "Ω",
+                path = "🖫",
+            }
+
+            item.menu = menu_icon[entry.source.name]
+            return item
+        end,
+    },
+    mapping = {
+        ["<Up>"] = cmp.mapping.select_prev_item(select_opts),
+        ["<Down>"] = cmp.mapping.select_next_item(select_opts),
+
+        ["<C-p>"] = cmp.mapping.select_prev_item(select_opts),
+        ["<C-n>"] = cmp.mapping.select_next_item(select_opts),
+
+        ["<C-u>"] = cmp.mapping.scroll_docs(-4),
+        ["<C-d>"] = cmp.mapping.scroll_docs(4),
+
+        ["<C-e>"] = cmp.mapping.abort(),
+        ["<C-y>"] = cmp.mapping.confirm({ select = true }),
+        ["<CR>"] = cmp.mapping.confirm({ select = false }),
+
+        ["<C-f>"] = cmp.mapping(function(fallback)
+            if luasnip.jumpable(1) then
+                luasnip.jump(1)
+            else
+                fallback()
+            end
+        end, { "i", "s" }),
+
+        ["<C-b>"] = cmp.mapping(function(fallback)
+            if luasnip.jumpable(-1) then
+                luasnip.jump(-1)
+            else
+                fallback()
+            end
+        end, { "i", "s" }),
+
+        ["<Tab>"] = cmp.mapping(function(fallback)
+            local col = vim.fn.col(".") - 1
+
+            if cmp.visible() then
+                cmp.select_next_item(select_opts)
+            elseif col == 0 or vim.fn.getline("."):sub(col, col):match("%s") then
+                fallback()
+            else
+                cmp.complete()
+            end
+        end, { "i", "s" }),
+
+        ["<S-Tab>"] = cmp.mapping(function(fallback)
+            if cmp.visible() then
+                cmp.select_prev_item(select_opts)
+            else
+                fallback()
+            end
+        end, { "i", "s" }),
+    },
+})
