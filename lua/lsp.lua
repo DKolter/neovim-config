@@ -43,11 +43,16 @@ require("mason-lspconfig").setup({
         "html",
         "jsonls",
         "tsserver",
+        "slint_lsp",
+        "wgsl_analyzer",
     }
 })
 
 -- Treesitter setup
 require("nvim-treesitter.configs").setup({
+    highlight = {
+        enable = true,
+    },
     ensure_installed = {
         "c",
         "cpp",
@@ -61,6 +66,8 @@ require("nvim-treesitter.configs").setup({
         "json",
         "toml",
         "xml",
+        "slint",
+        "wgsl",
     }
 })
 
@@ -75,6 +82,18 @@ lspconfig.cssls.setup({ capabilities = lsp_capabilities })
 lspconfig.html.setup({ capabilities = lsp_capabilities })
 lspconfig.jsonls.setup({ capabilities = lsp_capabilities })
 lspconfig.tsserver.setup({ capabilities = lsp_capabilities })
+
+vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
+    pattern = "*.wgsl",
+    command = "setfiletype wgsl"
+})
+lspconfig.wgsl_analyzer.setup({ capabilities = lsp_capabilities })
+
+vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
+    pattern = "*.slint",
+    command = "setfiletype slint"
+})
+lspconfig.slint_lsp.setup({ capabilities = lsp_capabilities })
 
 -- Configure auto completion
 local cmp = require("cmp")
@@ -96,23 +115,6 @@ cmp.setup({
         { name = "nvim_lsp", keyword_length = 1 },
         { name = "buffer",   keyword_length = 3 },
         { name = "luasnip",  keyword_length = 2 },
-    },
-    window = {
-        documentation = cmp.config.window.bordered()
-    },
-    formatting = {
-        fields = { "menu", "abbr", "kind" },
-        format = function(entry, item)
-            local menu_icon = {
-                nvim_lsp = "λ",
-                luasnip = "⋗",
-                buffer = "Ω",
-                path = "🖫",
-            }
-
-            item.menu = menu_icon[entry.source.name]
-            return item
-        end,
     },
     mapping = {
         ["<Up>"] = cmp.mapping.select_prev_item(select_opts),
