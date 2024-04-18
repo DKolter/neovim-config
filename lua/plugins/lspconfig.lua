@@ -19,6 +19,15 @@ return {
 				map("<leader>la", vim.lsp.buf.code_action, "Code Action")
 				map("<leader>k", vim.lsp.buf.hover, "Hover Documentation")
 				map("<leader>lf", vim.lsp.buf.format, "Format")
+				map("<leader>le", vim.diagnostic.open_float, "Show diagnostic")
+
+				vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
+					border = "rounded",
+				})
+
+				vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, {
+					border = "rounded",
+				})
 			end,
 		})
 
@@ -32,7 +41,7 @@ return {
 			cssls = {},
 			tsserver = {},
 			wgsl_analyzer = {
-				filetypes = {"wgsl"},
+				filetypes = { "wgsl" },
 			},
 			lua_ls = {
 				settings = {
