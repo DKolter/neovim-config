@@ -28,6 +28,8 @@ return {
 				vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, {
 					border = "rounded",
 				})
+
+				vim.keymap.set("n", "<ESC>", vim.cmd.noh, { desc = "Clear search", noremap = true })
 			end,
 		})
 
