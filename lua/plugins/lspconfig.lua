@@ -42,6 +42,7 @@ return {
 			html = {},
 			cssls = {},
 			tsserver = {},
+			jsonls = {},
 			wgsl_analyzer = {
 				filetypes = { "wgsl" },
 			},
