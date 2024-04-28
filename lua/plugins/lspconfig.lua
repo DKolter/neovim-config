@@ -38,7 +38,7 @@ return {
 
 		local servers = {
 			rust_analyzer = {},
-			pyright = {},
+			ruff = {},
 			html = {},
 			cssls = {},
 			tsserver = {},
