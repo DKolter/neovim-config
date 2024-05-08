@@ -43,6 +43,7 @@ return {
 			cssls = {},
 			tsserver = {},
 			jsonls = {},
+			lemminx = {},
 			wgsl_analyzer = {
 				filetypes = { "wgsl" },
 			},
