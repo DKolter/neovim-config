@@ -38,7 +38,7 @@ return {
 
 		local servers = {
 			rust_analyzer = {},
-			ruff = {},
+			ruff_lsp =  {},
 			html = {},
 			cssls = {},
 			tsserver = {},
