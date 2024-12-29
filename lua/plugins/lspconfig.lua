@@ -38,7 +38,7 @@ return {
 
 		local servers = {
 			rust_analyzer = {},
-			ruff_lsp =  {},
+			ruff_lsp = {},
 			html = {},
 			cssls = {},
 			tsserver = {},
@@ -56,6 +56,8 @@ return {
 					},
 				},
 			},
+			gopls = {},
+			templ = {}
 		}
 
 		require("mason").setup()
