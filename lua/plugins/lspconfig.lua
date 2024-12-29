@@ -39,7 +39,9 @@ return {
 		local servers = {
 			rust_analyzer = {},
 			ruff_lsp = {},
-			html = {},
+			html = {
+				filetypes = { "html" }
+			},
 			cssls = {},
 			tsserver = {},
 			jsonls = {},
